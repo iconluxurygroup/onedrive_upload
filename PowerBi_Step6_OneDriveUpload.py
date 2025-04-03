@@ -1,3 +1,5 @@
+import _settings as cfg
+
 import mimetypes
 import os.path
 import requests
@@ -60,10 +62,6 @@ def ensure_folder_exists(access_token: str, site_id: str, folder_path: str, is_s
         print(f"Failed to ensure folder exists: {str(e)}")
         return False
 
-def clean_filename(filename: str, new_id: str) -> str:
-    """Clean filename by ensuring only one _fid_ suffix."""
-    cleaned = re.sub(r'_fid_[A-Z0-9]+', '', filename)
-    return f"{cleaned.rstrip('.xlsx')}_fid_{new_id}.xlsx"
 
 def upload_and_rename_files(source_folder: str, hostname: str = 'iconluxurygroup.sharepoint.com', 
                           site_path: str = '/sites/icon-powerbi', 
@@ -125,8 +123,10 @@ def upload_and_rename_files(source_folder: str, hostname: str = 'iconluxurygroup
                 if 'id' not in result:
                     raise KeyError("No file ID returned")
                 
-                new_file_name = clean_filename(file, result['id'])
-                new_file_path = os.path.join(source_folder, new_file_name)
+                new_file_name = file.replace(".xlsx", "_fid_" + result['id'] + ".xlsx")  # Example: appending "_renamed" before file extension
+                new_file_path = os.path.join(FileFolder, new_file_name)
+                
+                # Rename the file
                 os.rename(current_file_path, new_file_path)
                 
                 print(f"Successfully uploaded and renamed: {new_file_name} (ID: {result['id']})")
@@ -144,6 +144,9 @@ def upload_and_rename_files(source_folder: str, hostname: str = 'iconluxurygroup
     except Exception as e:
         print(f"Initialization failed: {str(e)}")
 
+
 if __name__ == "__main__":
-    FileFolder = '/workspaces/service-onedrive_upload/source'
+
+    FileFolder = cfg.FileFolder + "powerbi/ready/"
+
     upload_and_rename_files(FileFolder)
